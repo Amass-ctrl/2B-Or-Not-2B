@@ -255,15 +255,12 @@
     // =======================================================
     // CONFIGURATION OPTIONS
     // =======================================================
-    const MASTER_KEY = "2B OR NOT 2B THAT IS THE QUESTION"; // Puzzle password
-    const MAX_ATTEMPTS = 3;                       // Attempts before lockout
-    const LOCKOUT_HOURS = .25;                     // Lockout duration
+    const MASTER_KEY = "PASSWORD TEST"; // Set in ALL CAPS
+    const MAX_ATTEMPTS = 3;             // Attempts before lockout
+    const LOCKOUT_HOURS = 24;           // Lockout duration in hours
 
-    // File name or URL of your badge image:
+    // URL of your animated GIF badge:
     const BADGE_IMAGE_PATH = "https://file.garden/agH3HREnpRn5ffbH/Images/banana-dance.gif"; 
-
-    // Secret passphrase revealed on unlock:
-    const SECRET_PASSPHRASE = "GLORY_TO_MANKIND_VERIFIED_2B";
 
     // =======================================================
     // SYSTEM LOGIC
@@ -276,7 +273,7 @@
         const log = document.getElementById("log");
         const line = document.createElement("div");
         line.className = `log-line log-${type}`;
-        line.innerText = `[${new Date().toLocaleTimeString()}] ${text}`;
+        line.innerText = `[${new Date().toLocaleTimeString('en-US', { timeZone: 'America/New_York' })}] ${text}`;
         log.appendChild(line);
         log.scrollTop = log.scrollHeight;
     }
@@ -293,7 +290,7 @@
             localStorage.setItem("yorha_attempts", "0");
             localStorage.removeItem("yorha_lockout_until");
             setLockoutState(false);
-            appendLog("24-hour lockout window expired. Terminal re-engaged.", "system");
+            appendLog("Lockout window expired. Terminal re-engaged.", "system");
         }
         return false;
     }
@@ -351,6 +348,16 @@
         const charName = document.getElementById("charInput").value.trim();
         const inputPass = document.getElementById("passInput").value.trim();
 
+        // Admin override to reset lockouts during testing
+        if (inputPass.toUpperCase() === "RESET") {
+            localStorage.clear();
+            lockoutUntil = 0;
+            attempts = 0;
+            setLockoutState(false);
+            appendLog("ADMIN OVERRIDE: Storage and lockouts cleared.", "success");
+            return;
+        }
+
         if (!charName) {
             appendLog("ERROR: Identification missing. Enter a character name.", "error");
             return;
@@ -362,7 +369,17 @@
         }
 
         if (inputPass.toUpperCase() === MASTER_KEY) {
-            const timestamp = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }) + " EST";
+            // Generate Timestamp specifically in Eastern Time (EST/EDT)
+            const estTimestamp = new Date().toLocaleString('en-US', {
+                timeZone: 'America/New_York',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            }) + " EST";
 
             appendLog(`AUTHENTICATION SUCCESSFUL. Clearance granted to ${charName}.`, "success");
             
@@ -373,8 +390,7 @@
             // Set Badge Banner details
             document.getElementById("badgeImg").src = BADGE_IMAGE_PATH;
             document.getElementById("badgeCharName").innerText = charName;
-            document.getElementById("badgeTime").innerText = `AUTHENTICATED AT: ${timestamp}`;
-            document.getElementById("secretPass").innerText = SECRET_PASSPHRASE;
+            document.getElementById("badgeTime").innerText = `AUTHENTICATED AT: ${estTimestamp}`;
 
             // Display badge header at top & show unlock panel
             document.getElementById("badgeHeader").style.display = "block";
