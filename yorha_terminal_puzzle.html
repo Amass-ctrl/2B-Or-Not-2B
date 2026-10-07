@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YoRHa Terminal // System Override</title>
+    <!-- Tailwind CSS for layout utilities -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg-color: #0b0c0e;
+            --term-bg: #13161c;
+            --border-color: #2a303c;
+            --accent-green: #00ff66;
+            --accent-red: #ff3366;
+            --accent-amber: #ffb86c;
+            --accent-cyan: #00e5ff;
+            --text-main: #d8dee9;
+            --text-dim: #5c687a;
+            --font-mono: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 255, 102, 0.02) 0%, transparent 80%),
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%);
+            background-size: 100% 100%, 100% 4px;
+        }
+
+        /* Scanline Overlay Effect */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0, 0, 0, 0.2) 50%,
+                rgba(0, 0, 0, 0.2)
+            );
+            background-size: 100% 4px;
+            z-index: 50;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0c0e;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-green);
+        }
+
+        .term-card {
+            background: var(--term-bg);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.8), 0 0 10px rgba(0, 255, 102, 0.05);
+        }
+
+        .glowing-text-green {
+            text-shadow: 0 0 8px rgba(0, 255, 102, 0.6);
+        }
+
+        .glowing-text-red {
+            text-shadow: 0 0 8px rgba(255, 51, 102, 0.6);
+        }
+
+        .input-term {
+            background: #08090b;
+            border: 1px solid var(--border-color);
+            color: var(--accent-green);
+            transition: all 0.2s ease;
+        }
+
+        .input-term:focus {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 10px rgba(0, 255, 102, 0.2);
+            outline: none;
+        }
+
+        .btn-term {
+            background: #1d222b;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+
+        .btn-term:hover:not(:disabled) {
+            background: var(--accent-green);
+            color: #000;
+            border-color: var(--accent-green);
+            box-shadow: 0 0 12px rgba(0, 255, 102, 0.4);
+        }
+
+        .btn-term:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .log-success { color: var(--accent-green); }
+        .log-error { color: var(--accent-red); }
+        .log-warn { color: var(--accent-amber); }
+        .log-info { color: var(--accent-cyan); }
+        .log-dim { color: var(--text-dim); }
+
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .pulse-indicator {
+            animation: pulse-slow 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4 min-h-screen relative">
+    <div class="scanlines"></div>
+
+    <div class="w-full max-w-2xl term-card rounded-lg overflow-hidden z-10 my-8">
+        <!-- Terminal Header Bar -->
+        <div class="bg-[#181c24] px-4 py-3 border-b border-[#2a303c] flex flex-wrap justify-between items-center text-xs tracking-wider">
+            <div class="flex items-center space-x-2">
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#00ff66] pulse-indicator" id="status-dot"></span>
+                <span class="font-bold text-gray-300">YoRHa SYSTEM TERMINAL // RECOVERY UNIT v4.02</span>
+            </div>
+            <span class="text-amber-400 font-bold tracking-widest mt-1 sm:mt-0" id="sys-status">STATUS: LOCKED</span>
+        </div>
+
+        <div class="p-5 sm:p-6 space-y-6">
+            <!-- Instructions Banner -->
+            <div class="border-l-2 border-amber-400 bg-[#0e1015] p-3 text-xs text-gray-400 leading-relaxed">
+                <p class="text-amber-400 font-bold mb-1">[ DIRECTIVE OVERRIDE DETECTED ]</p>
+                <p>Enter your <span class="text-gray-200 font-semibold">Character Name / Handle</span> followed by your decoded authentication passkey. All verification attempts are logged to the local core database.</p>
+            </div>
+
+            <!-- Input Form Section -->
+            <div class="space-y-4">
+                <!-- Character Name Field -->
+                <div>
+                    <label for="charName" class="block text-xs text-gray-400 mb-1.5 font-bold uppercase tracking-wider">
+                        1. Character Name / Operator Handle <span class="text-red-400">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="charName" 
+                        placeholder="e.g. Operator 21O, Commander, 9S..." 
+                        class="w-full input-term px-4 py-2.5 text-sm rounded focus:outline-none"
+                        autocomplete="off"
+                    >
+                </div>
+
+                <!-- Password Guess Field -->
+                <div>
+                    <label for="passInput" class="block text-xs text-gray-400 mb-1.5 font-bold uppercase tracking-wider">
+                        2. Master Override Password <span class="text-red-400">*</span>
+                    </label>
+                    <div class="flex gap-2">
+                        <input 
+                            type="text" 
+                            id="passInput" 
+                            placeholder="Enter password guess..." 
+                            class="flex-1 input-term px-4 py-2.5 text-sm rounded focus:outline-none font-mono"
+                            autocomplete="off"
+                        >
+                        <button 
+                            id="submitBtn"
+                            onclick="checkPassword()" 
+                            class="btn-term px-6 py-2.5 rounded text-sm font-bold tracking-wider"
+                        >
+                            EXECUTE
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terminal Output Window -->
+            <div>
+                <div class="flex justify-between items-center mb-1.5">
+                    <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">System Output Stream</span>
+                    <button onclick="clearLogs()" class="text-[10px] text-gray-500 hover:text-gray-300 underline">Clear Log</button>
+                </div>
+                <div id="log" class="bg-[#08090b] border border-[#2a303c] p-4 rounded h-48 overflow-y-auto text-xs font-mono space-y-2 leading-relaxed">
+                    <div class="log-dim">[SYSTEM INIT] YoRHa Local Kernel operational.</div>
+                    <div class="log-dim">[SECURITY] 4-Sector authentication matrix active.</div>
+                    <div class="log-warn">[AWAITING INPUT] Input Character Identifier and Decryption Key.</div>
+                </div>
+            </div>
+
+            <!-- Victory Unlock Container -->
+            <div id="unlockPanel" class="hidden bg-[#0c1a14] border border-[#00ff66] rounded p-5 space-y-4">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-emerald-400 font-bold text-base glowing-text-green">>>> ROOT ADMINISTRATOR CLEARANCE GRANTED <<<</h3>
+                        <p class="text-xs text-gray-300 mt-1">Identity Verified: <span id="verifiedUser" class="text-white font-bold">---</span></p>
+                    </div>
+                    <span class="px-2 py-0.5 bg-emerald-950 border border-emerald-500 text-emerald-300 text-[10px] font-bold rounded">LEVEL 5 ACCESS</span>
+                </div>
+
+                <p class="text-xs text-gray-300 leading-relaxed">
+                    You have successfully bypassed YoRHa Model 2B's security overrides. Copy your unique token payload below and send it in a direct message or guestbook post to claim your privileges.
+                </p>
+
+                <!-- Token Output Box -->
+                <div class="bg-[#050e0a] border border-emerald-800 p-3 rounded flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div class="font-mono text-emerald-400 font-bold text-xs break-all" id="claimToken">
+                        TOKEN-USER-YORHA-OVERRIDE
+                    </div>
+                    <button 
+                        onclick="copyToken()" 
+                        id="copyBtn"
+                        class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-black font-bold text-xs px-4 py-2 rounded transition-all shrink-0"
+                    >
+                        COPY TOKEN
+                    </button>
+                </div>
+                <p id="copyStatus" class="text-[10px] text-emerald-400 font-bold h-3 text-right"></p>
+            </div>
+
+            <!-- Cipher Format Matrix Drawer -->
+            <div class="border-t border-[#2a303c] pt-4">
+                <button onclick="toggleHint()" class="text-xs text-gray-400 hover:text-emerald-400 transition-colors flex items-center space-x-1">
+                    <span id="hintArrow">►</span>
+                    <span>Toggle Sector Decryption Reference Matrix</span>
+                </button>
+
+                <div id="hintBox" class="hidden mt-3 p-3 bg-[#090b0e] border border-[#1e232d] rounded text-xs text-gray-400 space-y-1.5">
+                    <p class="text-amber-400 font-bold text-[11px] uppercase">Decryption Structure Guide:</p>
+                    <p><span class="text-gray-200">[SECTOR 01]:</span> Binary ASCII stream</p>
+                    <p><span class="text-gray-200">[SECTOR 02]:</span> ROT13 Alpha Shift</p>
+                    <p><span class="text-gray-200">[SECTOR 03]:</span> Polyalphabetic Array (Vigenère - Key: POD)</p>
+                    <p><span class="text-gray-200">[SECTOR 04]:</span> Inverted Hexadecimal Payload</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Target Master Password (Case-Insensitive check)
+        const MASTER_KEY = "Y0RH4_2B_8412-OVERRIDE";
+
+        function getTimestamp() {
+            const now = new Date();
+            return now.toTimeString().split(' ')[0];
+        }
+
+        function appendLog(text, type = "info") {
+            const log = document.getElementById("log");
+            const line = document.createElement("div");
+            line.className = `log-${type}`;
+            line.innerText = `[${getTimestamp()}] ${text}`;
+            log.appendChild(line);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById("log").innerHTML = `<div class="log-dim">[${getTimestamp()}] Terminal log cleared.</div>`;
+        }
+
+        function checkPassword() {
+            const charNameInput = document.getElementById("charName").value.trim();
+            const passInput = document.getElementById("passInput").value.trim();
+            const sysStatus = document.getElementById("sys-status");
+            const statusDot = document.getElementById("status-dot");
+            const unlockPanel = document.getElementById("unlockPanel");
+
+            // Input Validation
+            if (!charNameInput) {
+                appendLog("ERROR: Character Name / Handle is required before execution.", "error");
+                document.getElementById("charName").focus();
+                return;
+            }
+
+            if (!passInput) {
+                appendLog(`ERROR (${charNameInput}): Password payload cannot be empty.`, "error");
+                document.getElementById("passInput").focus();
+                return;
+            }
+
+            // Check correctness
+            if (passInput.toUpperCase() === MASTER_KEY) {
+                // SUCCESS
+                appendLog(`[SUCCESS] User '${charNameInput}' provided VALID authentication key.`, "success");
+                appendLog(`System override engaged for unit YoRHa 2B. Level 5 clearance granted.`, "success");
+
+                // Update UI Header
+                sysStatus.innerText = "STATUS: UNLOCKED";
+                sysStatus.className = "text-emerald-400 font-bold tracking-widest glowing-text-green";
+                statusDot.style.backgroundColor = "#00ff66";
+
+                // Generate Custom Token
+                const cleanName = charNameInput.toUpperCase().replace(/[^A-Z0-9]/g, '_');
+                const generatedToken = `TOKEN-${cleanName}-YORHA-OVERRIDE-VERIFIED`;
+                
+                document.getElementById("verifiedUser").innerText = charNameInput;
+                document.getElementById("claimToken").innerText = generatedToken;
+                
+                // Reveal Panel
+                unlockPanel.classList.remove("hidden");
+
+                // Lock inputs
+                document.getElementById("passInput").disabled = true;
+                document.getElementById("submitBtn").disabled = true;
+            } else {
+                // FAILURE
+                appendLog(`[DENIED] Attempt by '${charNameInput}' failed. Invalid key '${passInput}'.`, "error");
+            }
+        }
+
+        function copyToken() {
+            const tokenText = document.getElementById("claimToken").innerText;
+            const copyStatus = document.getElementById("copyStatus");
+
+            // Execute clipboard copy
+            const el = document.createElement('textarea');
+            el.value = tokenText;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+
+            copyStatus.innerText = "TOKEN COPIED TO CLIPBOARD!";
+            setTimeout(() => {
+                copyStatus.innerText = "";
+            }, 3000);
+        }
+
+        function toggleHint() {
+            const hintBox = document.getElementById("hintBox");
+            const hintArrow = document.getElementById("hintArrow");
+            
+            if (hintBox.classList.contains("hidden")) {
+                hintBox.classList.remove("hidden");
+                hintArrow.innerText = "▼";
+            } else {
+                hintBox.classList.add("hidden");
+                hintArrow.innerText = "►";
+            }
+        }
+
+        // Keyboard Shortcut: Press Enter to submit from either field
+        document.getElementById("passInput").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") checkPassword();
+        });
+        document.getElementById("charName").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") checkPassword();
+        });
+    </script>
+</body>
+</html>
