@@ -226,7 +226,7 @@
     </div>
 
     <div class="terminal-header">
-        <span>YORHA SYSTEM TERMINAL // v4.02</span>
+        <span>2B ADMIN ACCESS CONTROLS // v4.02</span>
         <span class="status-badge" id="sys-status">STATUS: LOCKED</span>
     </div>
     
@@ -239,24 +239,23 @@
 
         <div class="form-group" id="inputForm">
             <input type="text" id="charInput" placeholder="CHARACTER / USERNAME..." autocomplete="off">
-            <input type="text" id="passInput" placeholder="ENTER AUTH CODE..." autocomplete="off">
-            <button id="execBtn" onclick="checkPassword()">EXECUTE AUTHENTICATION</button>
+            <input type="text" id="passInput" placeholder="ENTER ADMINISTRATIVE PASSWORD..." autocomplete="off">
+            <button id="execBtn" onclick="checkPassword()">SUBMIT</button>
             <div class="lockout-counter" id="lockoutText"></div>
         </div>
 
         <div class="unlock-panel" id="unlockPanel">
             <div class="unlock-title">>>> ROOT ACCESS GRANTED <<<</div>
-            <p style="font-size: 0.85rem; color: #a0a0a0;">Send a screenshot of this page or copy your clearance token:</p>
-            <div class="secret-passphrase" id="secretPass">GLORY_TO_MANKIND_VERIFIED_2B</div>
+            <p style="font-size: 0.85rem; color: #a0a0a0;">Congrats! Send a screenshot of this page to confirm your clearance!</p>
+            </div>
         </div>
-    </div>
 </div>
 
 <script>
     // =======================================================
     // CONFIGURATION OPTIONS
     // =======================================================
-    const MASTER_KEY = "PASSWORD TEST"; // Puzzle password
+    const MASTER_KEY = "2B OR NOT 2B THAT IS THE QUESTION"; // Puzzle password
     const MAX_ATTEMPTS = 3;                       // Attempts before lockout
     const LOCKOUT_HOURS = .25;                     // Lockout duration
 
@@ -363,7 +362,7 @@
         }
 
         if (inputPass.toUpperCase() === MASTER_KEY) {
-            const timestamp = new Date().toUTCString();
+            const timestamp = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }) + " EST";
 
             appendLog(`AUTHENTICATION SUCCESSFUL. Clearance granted to ${charName}.`, "success");
             
