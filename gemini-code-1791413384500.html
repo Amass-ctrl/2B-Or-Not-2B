@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YoRHa Terminal // System Override</title>
+    <style>
+        :root {
+            --bg-color: #0d0e11;
+            --term-bg: #15181e;
+            --border-color: #2e3440;
+            --accent-green: #00ff66;
+            --accent-red: #ff3366;
+            --accent-amber: #ffb86c;
+            --text-main: #d8dee9;
+            --text-dim: #6c7a89;
+            --font-mono: 'Courier New', Courier, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 255, 102, 0.03) 0%, transparent 80%),
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 100%, 100% 4px;
+        }
+
+        .terminal-card {
+            background: var(--term-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            width: 100%;
+            max-width: 650px;
+            overflow: hidden;
+        }
+
+        /* Badge Header Container (Displays at top on unlock) */
+        .badge-header {
+            display: none;
+            text-align: center;
+            background: #080a0d;
+            padding: 20px 15px;
+            border-bottom: 1px solid var(--accent-green);
+        }
+
+        .badge-img {
+            max-width: 200px;
+            height: auto;
+            border-radius: 4px;
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.3);
+            margin-bottom: 12px;
+        }
+
+        .badge-char-name {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--accent-green);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .badge-timestamp {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+
+        .terminal-header {
+            background: #1e222a;
+            padding: 12px 18px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+        }
+
+        .status-badge {
+            color: var(--accent-amber);
+            font-weight: bold;
+        }
+
+        .terminal-body {
+            padding: 24px;
+        }
+
+        .log-output {
+            background: #0b0c0e;
+            border: 1px solid #232730;
+            padding: 16px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            color: var(--text-main);
+            height: 180px;
+            overflow-y: auto;
+        }
+
+        .log-line { margin-bottom: 6px; }
+        .log-system { color: var(--text-dim); }
+        .log-success { color: var(--accent-green); }
+        .log-error { color: var(--accent-red); }
+        .log-warn { color: var(--accent-amber); }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            background: #0b0c0e;
+            border: 1px solid var(--border-color);
+            color: var(--accent-green);
+            font-family: var(--font-mono);
+            padding: 12px 16px;
+            font-size: 1rem;
+            border-radius: 4px;
+            outline: none;
+            letter-spacing: 1px;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 8px rgba(0, 255, 102, 0.2);
+        }
+
+        input[type="text"]:disabled {
+            border-color: var(--accent-red);
+            color: var(--text-dim);
+            cursor: not-allowed;
+            background: #151013;
+        }
+
+        button {
+            width: 100%;
+            background: #232730;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            padding: 12px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        button:hover:not(:disabled) {
+            background: var(--accent-green);
+            color: #000;
+            border-color: var(--accent-green);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: var(--accent-red);
+        }
+
+        .unlock-panel {
+            display: none;
+            background: #0e1a14;
+            border: 1px solid var(--accent-green);
+            border-radius: 4px;
+            padding: 20px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .unlock-title {
+            color: var(--accent-green);
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+        }
+
+        .secret-passphrase {
+            background: #050d08;
+            border: 1px dashed var(--accent-green);
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 4px;
+            color: var(--accent-green);
+            font-weight: bold;
+            letter-spacing: 1px;
+            word-break: break-all;
+        }
+
+        .lockout-counter {
+            font-size: 0.8rem;
+            color: var(--accent-red);
+            margin-top: 6px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="terminal-card">
+    
+    <!-- Top Badge Banner (Appears on Successful Override) -->
+    <div class="badge-header" id="badgeHeader">
+        <img id="badgeImg" class="badge-img" src="badge.png" alt="Clearance Badge">
+        <div class="badge-char-name" id="badgeCharName">UNKNOWN_UNIT</div>
+        <div class="badge-timestamp" id="badgeTime">--:--:--</div>
+    </div>
+
+    <div class="terminal-header">
+        <span>YORHA SYSTEM TERMINAL // v4.02</span>
+        <span class="status-badge" id="sys-status">STATUS: LOCKED</span>
+    </div>
+    
+    <div class="terminal-body">
+        <div class="log-output" id="log">
+            <div class="log-line log-system">[SYSTEM INITIALIZED] Security lockout active.</div>
+            <div class="log-line log-system">Root administrator access requires authorization cipher.</div>
+            <div class="log-line log-warn">Awaiting user ID & cipher payload...</div>
+        </div>
+
+        <div class="form-group" id="inputForm">
+            <input type="text" id="charInput" placeholder="CHARACTER / USERNAME..." autocomplete="off">
+            <input type="text" id="passInput" placeholder="ENTER AUTH CODE..." autocomplete="off">
+            <button id="execBtn" onclick="checkPassword()">EXECUTE AUTHENTICATION</button>
+            <div class="lockout-counter" id="lockoutText"></div>
+        </div>
+
+        <div class="unlock-panel" id="unlockPanel">
+            <div class="unlock-title">>>> ROOT ACCESS GRANTED <<<</div>
+            <p style="font-size: 0.85rem; color: #a0a0a0;">Send a screenshot of this page or copy your clearance token:</p>
+            <div class="secret-passphrase" id="secretPass">GLORY_TO_MANKIND_VERIFIED_2B</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // =======================================================
+    // CONFIGURATION OPTIONS
+    // =======================================================
+    const MASTER_KEY = "Y0RH4_2B_8412-OVERRIDE"; // Puzzle password
+    const MAX_ATTEMPTS = 3;                       // Attempts before lockout
+    const LOCKOUT_HOURS = 24;                     // Lockout duration
+
+    // File name or URL of your badge image:
+    const BADGE_IMAGE_PATH = "badge.png"; 
+
+    // Secret passphrase revealed on unlock:
+    const SECRET_PASSPHRASE = "GLORY_TO_MANKIND_VERIFIED_2B";
+
+    // =======================================================
+    // SYSTEM LOGIC
+    // =======================================================
+    let attempts = parseInt(localStorage.getItem("yorha_attempts") || "0");
+    let lockoutUntil = parseInt(localStorage.getItem("yorha_lockout_until") || "0");
+    let timerInterval = null;
+
+    function appendLog(text, type = "system") {
+        const log = document.getElementById("log");
+        const line = document.createElement("div");
+        line.className = `log-line log-${type}`;
+        line.innerText = `[${new Date().toLocaleTimeString()}] ${text}`;
+        log.appendChild(line);
+        log.scrollTop = log.scrollHeight;
+    }
+
+    function checkLockout() {
+        const now = Date.now();
+        if (lockoutUntil && now < lockoutUntil) {
+            setLockoutState(true);
+            startCountdown();
+            return true;
+        } else if (lockoutUntil && now >= lockoutUntil) {
+            attempts = 0;
+            lockoutUntil = 0;
+            localStorage.setItem("yorha_attempts", "0");
+            localStorage.removeItem("yorha_lockout_until");
+            setLockoutState(false);
+            appendLog("24-hour lockout window expired. Terminal re-engaged.", "system");
+        }
+        return false;
+    }
+
+    function setLockoutState(isLocked) {
+        document.getElementById("charInput").disabled = isLocked;
+        document.getElementById("passInput").disabled = isLocked;
+        document.getElementById("execBtn").disabled = isLocked;
+        document.getElementById("lockoutText").style.display = isLocked ? "block" : "none";
+        
+        const statusBadge = document.getElementById("sys-status");
+        if (isLocked) {
+            statusBadge.innerText = "STATUS: TERMINAL LOCKED";
+            statusBadge.style.color = "var(--accent-red)";
+        } else {
+            statusBadge.innerText = "STATUS: LOCKED";
+            statusBadge.style.color = "var(--accent-amber)";
+        }
+    }
+
+    function startCountdown() {
+        if (timerInterval) clearInterval(timerInterval);
+        
+        function updateTimer() {
+            const now = Date.now();
+            const remainingSec = Math.ceil((lockoutUntil - now) / 1000);
+
+            if (remainingSec <= 0) {
+                clearInterval(timerInterval);
+                checkLockout();
+            } else {
+                const hours = Math.floor(remainingSec / 3600);
+                const mins = Math.floor((remainingSec % 3600) / 60);
+                const secs = remainingSec % 60;
+                document.getElementById("lockoutText").innerText = 
+                    `[SECURITY LOCKOUT] Max attempts reached. Retry in: ${hours}h ${mins}m ${secs < 10 ? '0' : ''}${secs}s`;
+            }
+        }
+
+        updateTimer();
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function triggerLockout() {
+        lockoutUntil = Date.now() + (LOCKOUT_HOURS * 60 * 60 * 1000);
+        localStorage.setItem("yorha_lockout_until", lockoutUntil.toString());
+        appendLog(`CRITICAL: Maximum failed attempts reached (${MAX_ATTEMPTS}/${MAX_ATTEMPTS}). Lockout initiated for ${LOCKOUT_HOURS} hours.`, "error");
+        setLockoutState(true);
+        startCountdown();
+    }
+
+    function checkPassword() {
+        if (checkLockout()) return;
+
+        const charName = document.getElementById("charInput").value.trim();
+        const inputPass = document.getElementById("passInput").value.trim();
+
+        if (!charName) {
+            appendLog("ERROR: Identification missing. Enter a character name.", "error");
+            return;
+        }
+
+        if (!inputPass) {
+            appendLog("ERROR: Input payload cannot be empty.", "error");
+            return;
+        }
+
+        if (inputPass.toUpperCase() === MASTER_KEY) {
+            const timestamp = new Date().toUTCString();
+
+            appendLog(`AUTHENTICATION SUCCESSFUL. Clearance granted to ${charName}.`, "success");
+            
+            const statusBadge = document.getElementById("sys-status");
+            statusBadge.innerText = "STATUS: UNLOCKED";
+            statusBadge.style.color = "var(--accent-green)";
+            
+            // Set Badge Banner details
+            document.getElementById("badgeImg").src = BADGE_IMAGE_PATH;
+            document.getElementById("badgeCharName").innerText = charName;
+            document.getElementById("badgeTime").innerText = `AUTHENTICATED AT: ${timestamp}`;
+            document.getElementById("secretPass").innerText = SECRET_PASSPHRASE;
+
+            // Display badge header at top & show unlock panel
+            document.getElementById("badgeHeader").style.display = "block";
+            document.getElementById("inputForm").style.display = "none";
+            document.getElementById("unlockPanel").style.display = "block";
+
+            localStorage.setItem("yorha_attempts", "0");
+
+        } else {
+            attempts++;
+            localStorage.setItem("yorha_attempts", attempts.toString());
+            const remaining = MAX_ATTEMPTS - attempts;
+
+            appendLog(`ACCESS DENIED: Invalid key '${inputPass}' for unit '${charName}'. (${remaining} attempts left)`, "error");
+
+            if (attempts >= MAX_ATTEMPTS) {
+                triggerLockout();
+            }
+        }
+    }
+
+    window.onload = function() {
+        checkLockout();
+    };
+</script>
+
+</body>
+</html>
