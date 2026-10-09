@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YoRHa Terminal // System Override</title>
+    <title>YoRHa Terminal // 2B System Override</title>
     <style>
         :root {
             --bg-color: #0d0e11;
@@ -234,11 +234,11 @@
         <div class="log-output" id="log">
             <div class="log-line log-system">[SYSTEM INITIALIZED] Security lockout active.</div>
             <div class="log-line log-system">Root administrator access requires authorization cipher.</div>
-            <div class="log-line log-warn">Awaiting user ID & cipher payload...</div>
+            <div class="log-line log-warn">Awaiting User ID & Administrative Password...</div>
         </div>
 
         <div class="form-group" id="inputForm">
-            <input type="text" id="charInput" placeholder="CHARACTER / USERNAME..." autocomplete="off">
+            <input type="text" id="charInput" placeholder="CHARACTER NAME..." autocomplete="off">
             <input type="text" id="passInput" placeholder="ENTER ADMINISTRATIVE PASSWORD..." autocomplete="off">
             <button id="execBtn" onclick="checkPassword()">SUBMIT</button>
             <div class="lockout-counter" id="lockoutText"></div>
@@ -255,12 +255,12 @@
     // =======================================================
     // CONFIGURATION OPTIONS
     // =======================================================
-    const MASTER_KEY = "PASSWORD TEST"; // Set in ALL CAPS
+    const MASTER_KEY = "ROOT_DIRECTORY_ACCESS_CODE_6378492"; // Set in ALL CAPS
     const MAX_ATTEMPTS = 3;             // Attempts before lockout
     const LOCKOUT_HOURS = 24;           // Lockout duration in hours
 
     // URL of your animated GIF badge:
-    const BADGE_IMAGE_PATH = "https://file.garden/agH3HREnpRn5ffbH/Images/banana-dance.gif"; 
+    const BADGE_IMAGE_PATH = "https://file.garden/agH3HREnpRn5ffbH/Images/2B%20Glitchv2.gif"; 
 
     // =======================================================
     // SYSTEM LOGIC
