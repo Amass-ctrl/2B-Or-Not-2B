@@ -194,18 +194,6 @@
             letter-spacing: 2px;
         }
 
-        .secret-passphrase {
-            background: #050d08;
-            border: 1px dashed var(--accent-green);
-            padding: 12px;
-            margin-top: 10px;
-            border-radius: 4px;
-            color: var(--accent-green);
-            font-weight: bold;
-            letter-spacing: 1px;
-            word-break: break-all;
-        }
-
         .lockout-counter {
             font-size: 0.8rem;
             color: var(--accent-red);
@@ -226,7 +214,7 @@
     </div>
 
     <div class="terminal-header">
-        <span>2B ADMIN ACCESS CONTROLS // v4.02</span>
+        <span>2B ADMIN ACCESS CONTROLS // v5.69 </span>
         <span class="status-badge" id="sys-status">STATUS: LOCKED</span>
     </div>
     
@@ -247,15 +235,15 @@
         <div class="unlock-panel" id="unlockPanel">
             <div class="unlock-title">>>> ROOT ACCESS GRANTED <<<</div>
             <p style="font-size: 0.85rem; color: #a0a0a0;">Congrats! Send a screenshot of this page to confirm your clearance!</p>
-            </div>
         </div>
+    </div>
 </div>
 
 <script>
     // =======================================================
     // CONFIGURATION OPTIONS
     // =======================================================
-    const MASTER_KEY = "ROOT_DIRECTORY_ACCESS_CODE_6378492"; // Set in ALL CAPS
+    const MASTER_HASH = "337de98b8265c1ee7eb16ec72e626fa5f090a766bdc04183c4f24bf1db5792f5";   
     const MAX_ATTEMPTS = 3;             // Attempts before lockout
     const LOCKOUT_HOURS = 24;           // Lockout duration in hours
 
@@ -342,7 +330,15 @@
         startCountdown();
     }
 
-    function checkPassword() {
+    // Helper function to calculate SHA-256 hash in browser
+    async function sha256(message) {
+        const msgBuffer = new TextEncoder().encode(message);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function checkPassword() {
         if (checkLockout()) return;
 
         const charName = document.getElementById("charInput").value.trim();
@@ -368,8 +364,10 @@
             return;
         }
 
-        if (inputPass.toUpperCase() === MASTER_KEY) {
-            // Generate Timestamp specifically in Eastern Time (EST/EDT)
+        // Compute hash of the user's input (in uppercase)
+        const inputHash = await sha256(inputPass.toUpperCase());
+
+        if (inputHash === MASTER_HASH) {
             const estTimestamp = new Date().toLocaleString('en-US', {
                 timeZone: 'America/New_York',
                 year: 'numeric',
